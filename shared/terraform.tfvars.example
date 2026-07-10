@@ -1,0 +1,22 @@
+project_name    = "personal-sites"
+server_name     = "prod-1"
+location        = "ash"
+server_type     = "cpx11"
+image           = "ubuntu-24.04"
+ssh_key_name    = "admin-key"
+# Option A (recommended): leave ssh_public_key unset and use ssh_public_key_path.
+# ssh_public_key_path = "~/.ssh/id_ed25519.pub"
+#
+# Option B: provide the full key string directly.
+# ssh_public_key  = "ssh-ed25519 AAAA...actual-full-key..."
+
+# Lock this down to your own public IP ranges before apply.
+admin_ipv4_cidrs = ["0.0.0.0/0"]
+admin_ipv6_cidrs = ["::/0"]
+
+enable_backups = true
+deploy_username = "deploy"
+family_domain = "family.bghimire.com"
+fitness_domain = "fitness.bghimire.com"
+badge_creator_domain = "badges.bghimire.com"
+acme_email = "ghi.biswash@gmail.com"
