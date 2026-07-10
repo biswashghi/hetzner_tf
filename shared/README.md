@@ -1,7 +1,7 @@
 # Terraform Infra Reference
 
 Primary step-by-step deployment instructions live in:
-- [README.md](/Users/biswash/Documents/repos/hetzner_tf/README.md)
+- [README.md](../README.md)
 
 This file is the Terraform-specific reference.
 
@@ -46,11 +46,11 @@ This file is the Terraform-specific reference.
 
 - Firewall is production-oriented: `22`, `80`, `443`.
 - App containers bind only to localhost (`127.0.0.1`) and are exposed publicly through shared Caddy.
-- Token auth is runtime-only through `HCLOUD_TOKEN` (handled by `/Users/biswash/Documents/repos/hetzner_tf/scripts/tf-hcloud.sh`).
+- Token auth is runtime-only through `HCLOUD_TOKEN` (handled by [`../scripts/tf-hcloud.sh`](../scripts/tf-hcloud.sh)).
 
 ## Lifecycle Commands
 
-From `/Users/biswash/Documents/repos/hetzner_tf`:
+From the `hetzner_tf` repo root:
 
 ```bash
 ./scripts/tf-hcloud.sh init

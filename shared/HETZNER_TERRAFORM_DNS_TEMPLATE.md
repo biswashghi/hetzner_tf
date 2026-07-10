@@ -14,23 +14,23 @@ For this app, deployment is split into layers:
 
 1. Infrastructure layer (Terraform)
 - Provisions server, firewall, SSH key, and outputs.
-- Reference: [/Users/biswash/Documents/repos/hetzner_tf/shared/main.tf](/Users/biswash/Documents/repos/hetzner_tf/shared/main.tf)
+- Reference: [main.tf](./main.tf)
 
 2. Runtime layer (Docker Compose)
 - Runs app container and Caddy reverse proxy container.
-- Reference: [/Users/biswash/Documents/repos/fitness/docker-compose.prod.yml](/Users/biswash/Documents/repos/fitness/docker-compose.prod.yml)
+- Reference: [fitness/docker-compose.prod.yml](../../fitness/docker-compose.prod.yml)
 
 3. HTTPS + routing (Caddy)
 - Terminates TLS on 443 and reverse proxies to app internal port.
-- Reference: [/Users/biswash/Documents/repos/hetzner_tf/scripts/deploy-shared-caddy.sh](/Users/biswash/Documents/repos/hetzner_tf/scripts/deploy-shared-caddy.sh)
+- Reference: [scripts/deploy-shared-caddy.sh](../scripts/deploy-shared-caddy.sh)
 
 4. Deployment automation (scripts)
 - Terraform token orchestration via Bitwarden
 - Server pull/build/up workflow
 - References:
-  - [/Users/biswash/Documents/repos/hetzner_tf/scripts/tf-hcloud.sh](/Users/biswash/Documents/repos/hetzner_tf/scripts/tf-hcloud.sh)
-  - [/Users/biswash/Documents/repos/fitness/scripts/deploy-hetzner.sh](/Users/biswash/Documents/repos/fitness/scripts/deploy-hetzner.sh)
-  - [/Users/biswash/Documents/repos/hetzner_tf/scripts/deploy-hetzner-prod-from-tf.sh](/Users/biswash/Documents/repos/hetzner_tf/scripts/deploy-hetzner-prod-from-tf.sh)
+  - [scripts/tf-hcloud.sh](../scripts/tf-hcloud.sh)
+  - [fitness/scripts/deploy-hetzner.sh](../../fitness/scripts/deploy-hetzner.sh)
+  - [scripts/deploy-hetzner-prod-from-tf.sh](../scripts/deploy-hetzner-prod-from-tf.sh)
 
 ## 2) What Terraform Manages
 
@@ -41,12 +41,12 @@ Terraform resources in this project:
 - `hcloud_ssh_key.admin`
 
 Primary files:
-- Provider/version config: [/Users/biswash/Documents/repos/hetzner_tf/shared/versions.tf](/Users/biswash/Documents/repos/hetzner_tf/shared/versions.tf)
-- Variables: [/Users/biswash/Documents/repos/hetzner_tf/shared/variables.tf](/Users/biswash/Documents/repos/hetzner_tf/shared/variables.tf)
-- Resources: [/Users/biswash/Documents/repos/hetzner_tf/shared/main.tf](/Users/biswash/Documents/repos/hetzner_tf/shared/main.tf)
-- Outputs: [/Users/biswash/Documents/repos/hetzner_tf/shared/outputs.tf](/Users/biswash/Documents/repos/hetzner_tf/shared/outputs.tf)
-- Cloud-init bootstrap: [/Users/biswash/Documents/repos/hetzner_tf/shared/cloud-init.yaml.tftpl](/Users/biswash/Documents/repos/hetzner_tf/shared/cloud-init.yaml.tftpl)
-- Example tfvars: [/Users/biswash/Documents/repos/hetzner_tf/shared/terraform.tfvars.example](/Users/biswash/Documents/repos/hetzner_tf/shared/terraform.tfvars.example)
+- Provider/version config: [versions.tf](./versions.tf)
+- Variables: [variables.tf](./variables.tf)
+- Resources: [main.tf](./main.tf)
+- Outputs: [outputs.tf](./outputs.tf)
+- Cloud-init bootstrap: [cloud-init.yaml.tftpl](./cloud-init.yaml.tftpl)
+- Example tfvars: [terraform.tfvars.example](./terraform.tfvars.example)
 
 Production firewall posture in this template:
 - Open: `22`, `80`, `443`
@@ -67,8 +67,8 @@ Production compose stack:
   - auto-manages certs via ACME
 
 References:
-- Compose file: [/Users/biswash/Documents/repos/fitness/docker-compose.prod.yml](/Users/biswash/Documents/repos/fitness/docker-compose.prod.yml)
-- Image build targets: [/Users/biswash/Documents/repos/fitness/Dockerfile](/Users/biswash/Documents/repos/fitness/Dockerfile)
+- Compose file: [fitness/docker-compose.prod.yml](../../fitness/docker-compose.prod.yml)
+- Image build targets: [fitness/Dockerfile](../../fitness/Dockerfile)
 
 ## 4) Domain and DNS Flow
 
@@ -93,16 +93,16 @@ This template avoids hardcoding cloud tokens in tracked files.
 - Secret scanning is enforced with git hooks + gitleaks config.
 
 References:
-- Token wrapper: [/Users/biswash/Documents/repos/hetzner_tf/scripts/tf-hcloud.sh](/Users/biswash/Documents/repos/hetzner_tf/scripts/tf-hcloud.sh)
-- Gitleaks config: [/Users/biswash/Documents/repos/fitness/.gitleaks.toml](/Users/biswash/Documents/repos/fitness/.gitleaks.toml)
-- Pre-commit hook: [/Users/biswash/Documents/repos/fitness/.githooks/pre-commit](/Users/biswash/Documents/repos/fitness/.githooks/pre-commit)
+- Token wrapper: [scripts/tf-hcloud.sh](../scripts/tf-hcloud.sh)
+- Gitleaks config: [fitness/.gitleaks.toml](../../fitness/.gitleaks.toml)
+- Pre-commit hook: [fitness/.githooks/pre-commit](../../fitness/.githooks/pre-commit)
 
 ## 6) Standard Command Sequence (This App)
 
 1. Configure Terraform vars:
 
 ```bash
-cd /Users/biswash/Documents/repos/hetzner_tf/shared
+cd shared
 cp terraform.tfvars.example terraform.tfvars
 # edit terraform.tfvars
 ```
@@ -110,7 +110,7 @@ cp terraform.tfvars.example terraform.tfvars
 2. Provision/update infrastructure:
 
 ```bash
-cd /Users/biswash/Documents/repos/hetzner_tf
+cd /path/to/hetzner_tf
 ./scripts/tf-hcloud.sh init
 ./scripts/tf-hcloud.sh plan
 ./scripts/tf-hcloud.sh apply
@@ -122,8 +122,8 @@ cd /Users/biswash/Documents/repos/hetzner_tf
 4. Deploy app + Caddy using Terraform outputs:
 
 ```bash
-cd /Users/biswash/Documents/repos/hetzner_tf
-./scripts/deploy-hetzner-prod-from-tf.sh /Users/biswash/Documents/repos/fitness deploy <SERVER_IPV4> <REPO_URL> main
+cd /path/to/hetzner_tf
+./scripts/deploy-hetzner-prod-from-tf.sh /path/to/fitness deploy <SERVER_IPV4> <REPO_URL> main
 ```
 
 5. Verify:
@@ -140,28 +140,28 @@ When reusing for another app, update these areas:
 
 1. App container details
 - Update build context/image/cmd/port/volumes in:
-  - [/Users/biswash/Documents/repos/fitness/docker-compose.prod.yml](/Users/biswash/Documents/repos/fitness/docker-compose.prod.yml)
-  - [/Users/biswash/Documents/repos/fitness/Dockerfile](/Users/biswash/Documents/repos/fitness/Dockerfile)
+  - [fitness/docker-compose.prod.yml](../../fitness/docker-compose.prod.yml)
+  - [fitness/Dockerfile](../../fitness/Dockerfile)
 
 2. Reverse proxy target
 - Update upstream host:port in:
-  - [/Users/biswash/Documents/repos/hetzner_tf/scripts/deploy-shared-caddy.sh](/Users/biswash/Documents/repos/hetzner_tf/scripts/deploy-shared-caddy.sh)
+  - [scripts/deploy-shared-caddy.sh](../scripts/deploy-shared-caddy.sh)
 
 3. Health endpoint
 - Ensure `/api/health` exists, or change verification/deploy checks.
 - Current backend ref:
-  - [/Users/biswash/Documents/repos/fitness/server/index.js](/Users/biswash/Documents/repos/fitness/server/index.js)
+  - [fitness/server/index.js](../../fitness/server/index.js)
   - Static sites like `badge_creator` can skip the health endpoint and use a simple `curl -I` check instead.
 
 4. Terraform naming and defaults
 - Update names/tags/defaults in:
-  - [/Users/biswash/Documents/repos/hetzner_tf/shared/variables.tf](/Users/biswash/Documents/repos/hetzner_tf/shared/variables.tf)
-  - [/Users/biswash/Documents/repos/hetzner_tf/shared/main.tf](/Users/biswash/Documents/repos/hetzner_tf/shared/main.tf)
+  - [variables.tf](./variables.tf)
+  - [main.tf](./main.tf)
 
 5. Deploy script assumptions
 - Current scripts assume repo pull to `/opt/fitness-tracker` and compose deploy.
 - Update as needed in:
-  - [/Users/biswash/Documents/repos/fitness/scripts/deploy-hetzner.sh](/Users/biswash/Documents/repos/fitness/scripts/deploy-hetzner.sh)
+  - [fitness/scripts/deploy-hetzner.sh](../../fitness/scripts/deploy-hetzner.sh)
 
 ## 8) Operational Best Practices (Template Defaults)
 
@@ -192,5 +192,5 @@ When reusing for another app, update these areas:
 
 ## 10) Canonical References
 
-- Primary runbook: [/Users/biswash/Documents/repos/fitness/README.md](/Users/biswash/Documents/repos/fitness/README.md)
-- Terraform details: [/Users/biswash/Documents/repos/hetzner_tf/shared/README.md](/Users/biswash/Documents/repos/hetzner_tf/shared/README.md)
+- Primary runbook: [fitness/README.md](../../fitness/README.md)
+- Terraform details: [shared/README.md](./README.md)
