@@ -113,66 +113,11 @@ if [[ -z "$ACME_EMAIL" || "$ACME_EMAIL" == "admin@example.com" ]]; then
   exit 1
 fi
 
-FAMILY_HUB_USERNAME_VALUE="${FAMILY_HUB_USERNAME:-}"
-FAMILY_HUB_PASSWORD_VALUE="${FAMILY_HUB_PASSWORD:-}"
-if [[ "$REPO_NAME" == "family_hub" ]]; then
-  if [[ -z "$FAMILY_HUB_USERNAME_VALUE" || -z "$FAMILY_HUB_PASSWORD_VALUE" ]]; then
-    if ! command -v bw >/dev/null 2>&1 || ! command -v jq >/dev/null 2>&1; then
-      echo "Family Hub deploy requires bw and jq to fetch credentials from Bitwarden."
-      echo "Alternatively set FAMILY_HUB_USERNAME and FAMILY_HUB_PASSWORD in your shell."
-      exit 1
-    fi
-
-    BW_ITEM_NAME="${BW_FAMILY_HUB_ITEM_NAME:-family-hub-prod-credentials}"
-    BW_USERNAME_FIELD="${BW_FAMILY_HUB_USERNAME_FIELD:-username}"
-    BW_PASSWORD_FIELD="${BW_FAMILY_HUB_PASSWORD_FIELD:-password}"
-    BW_SESSION_VALUE="$(ensure_bw_session)"
-    BW_ITEM_JSON="$(bw get item "$BW_ITEM_NAME" --session "$BW_SESSION_VALUE")"
-
-    if [[ -z "$FAMILY_HUB_USERNAME_VALUE" ]]; then
-      FAMILY_HUB_USERNAME_VALUE="$(
-        printf '%s' "$BW_ITEM_JSON" \
-          | jq -r --arg field "$BW_USERNAME_FIELD" '[
-              (.fields[]? | select((.name|ascii_downcase)==($field|ascii_downcase)) | .value),
-              .login.username
-            ] | map(select(. != null and . != "")) | .[0] // ""' \
-          | tr -d '\r\n'
-      )"
-    fi
-    if [[ -z "$FAMILY_HUB_PASSWORD_VALUE" ]]; then
-      FAMILY_HUB_PASSWORD_VALUE="$(
-        printf '%s' "$BW_ITEM_JSON" \
-          | jq -r --arg field "$BW_PASSWORD_FIELD" '[
-              (.fields[]? | select((.name|ascii_downcase)==($field|ascii_downcase)) | .value),
-              .login.password
-            ] | map(select(. != null and . != "")) | .[0] // ""' \
-          | tr -d '\r\n'
-      )"
-    fi
-  fi
-
-  if [[ -z "$FAMILY_HUB_USERNAME_VALUE" || -z "$FAMILY_HUB_PASSWORD_VALUE" ]]; then
-    echo "Could not resolve Family Hub credentials."
-    echo "Set FAMILY_HUB_USERNAME/FAMILY_HUB_PASSWORD or configure Bitwarden item/fields via:"
-    echo "  BW_FAMILY_HUB_ITEM_NAME (default: family-hub-prod-credentials)"
-    echo "  BW_FAMILY_HUB_USERNAME_FIELD (default: username)"
-    echo "  BW_FAMILY_HUB_PASSWORD_FIELD (default: password)"
-    exit 1
-  fi
-fi
-
 "${SCRIPT_DIR}/deploy-shared-caddy.sh" \
   "$DEPLOY_USER" "$SERVER_IP" "$FAMILY_DOMAIN" "$FITNESS_DOMAIN" "$BADGE_CREATOR_DOMAIN" "$ACME_EMAIL"
 
 (
   cd "$REPO_DIR"
-  if [[ "$REPO_NAME" == "family_hub" ]]; then
-    APP_DOMAIN="$APP_DOMAIN" ACME_EMAIL="$ACME_EMAIL" \
-      FAMILY_HUB_USERNAME="$FAMILY_HUB_USERNAME_VALUE" \
-      FAMILY_HUB_PASSWORD="$FAMILY_HUB_PASSWORD_VALUE" \
-      ./scripts/deploy-hetzner.sh "$DEPLOY_USER" "$SERVER_IP" "$REPO_URL" "$BRANCH"
-  else
-    APP_DOMAIN="$APP_DOMAIN" ACME_EMAIL="$ACME_EMAIL" \
-      ./scripts/deploy-hetzner.sh "$DEPLOY_USER" "$SERVER_IP" "$REPO_URL" "$BRANCH"
-  fi
+  APP_DOMAIN="$APP_DOMAIN" ACME_EMAIL="$ACME_EMAIL" \
+    ./scripts/deploy-hetzner.sh "$DEPLOY_USER" "$SERVER_IP" "$REPO_URL" "$BRANCH"
 )

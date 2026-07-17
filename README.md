@@ -72,14 +72,7 @@ cd /Users/biswash/Documents/repos/hetzner_tf
   <deploy-user> <server-ip> <family-repo-url> main
 ```
 
-Family Hub credentials are pulled from Bitwarden by default:
-- Item: `family-hub-prod-credentials`
-- Fields: `username`, `password`
-
-Override names if needed:
-- `BW_FAMILY_HUB_ITEM_NAME`
-- `BW_FAMILY_HUB_USERNAME_FIELD`
-- `BW_FAMILY_HUB_PASSWORD_FIELD`
+Family Hub creates its first household sign-in from `/login` after deployment. No app username or password is required during deploy.
 
 If needed, return to the Family Hub README for app-specific details:
 - [Family Hub README](https://github.com/biswashghi/family_hub/blob/main/README.md)
