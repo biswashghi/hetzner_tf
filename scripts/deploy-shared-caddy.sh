@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ $# -lt 6 ]]; then
-  echo "Usage: $0 <deploy-user> <server-ip> <family-domain> <fitness-domain> <badge-creator-domain> <acme-email>"
+  echo "Usage: $0 <deploy-user> <server-ip> <family-domain> <fitness-domain> <badge-creator-domain> <acme-email> [family-port] [fitness-port] [badge-creator-port]"
   exit 1
 fi
 
@@ -12,6 +12,9 @@ FAMILY_DOMAIN="$3"
 FITNESS_DOMAIN="$4"
 BADGE_CREATOR_DOMAIN="$5"
 ACME_EMAIL="$6"
+FAMILY_PORT="${7:-8787}"
+FITNESS_PORT="${8:-8788}"
+BADGE_CREATOR_PORT="${9:-8789}"
 
 ssh "${DEPLOY_USER}@${SERVER_IP}" <<EOF
 set -euo pipefail
@@ -36,17 +39,17 @@ sudo tee /opt/shared-caddy/Caddyfile >/dev/null <<CADDYFILE
 
 ${FAMILY_DOMAIN} {
   encode zstd gzip
-  reverse_proxy 127.0.0.1:8787
+  reverse_proxy 127.0.0.1:${FAMILY_PORT}
 }
 
 ${FITNESS_DOMAIN} {
   encode zstd gzip
-  reverse_proxy 127.0.0.1:8788
+  reverse_proxy 127.0.0.1:${FITNESS_PORT}
 }
 
 ${BADGE_CREATOR_DOMAIN} {
   encode zstd gzip
-  reverse_proxy 127.0.0.1:8789
+  reverse_proxy 127.0.0.1:${BADGE_CREATOR_PORT}
 }
 CADDYFILE
 

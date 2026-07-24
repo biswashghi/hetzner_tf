@@ -3,7 +3,7 @@
 Primary step-by-step deployment instructions live in:
 - [README.md](../README.md)
 
-This file is the Terraform-specific reference.
+This file is the Hetzner Terraform-specific reference. Deployment scripts consume only the generic outputs listed below, so another provider can be added later by exposing the same output contract.
 
 ## Managed Resources
 
@@ -41,6 +41,17 @@ This file is the Terraform-specific reference.
 - `fitness_url`
 - `badge_creator_url`
 - `acme_email`
+
+The provider-agnostic deploy wrapper requires:
+
+```text
+server_ipv4
+deploy_user
+family_domain
+fitness_domain
+badge_creator_domain
+acme_email
+```
 
 ## Notes
 

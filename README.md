@@ -1,23 +1,25 @@
-# Hetzner Deployment Runbook
+# VPS Deployment Runbook
 
-Start here for production deployment on Hetzner.
+Start here for production deployment. Hetzner still provisions the current server, but app deployment is now provider-agnostic: SSH, Docker Compose, shared Caddy, optional Gandi DNS.
 
-This runbook covers the shared infrastructure and shared proxy flow for:
+This runbook covers:
 - `family_hub`
 - `fitness`
 - `badge_creator`
 
-For app-specific behavior (credentials, app operations, tests), go back to each repo README:
-- [Family Hub README](https://github.com/biswashghi/family_hub/blob/main/README.md)
-- [Fitness README](https://github.com/biswashghi/fitness/blob/main/README.md)
-- [Badge Creator README](https://github.com/biswashghi/badge_creator/blob/main/README.md)
+## Architecture
+
+- Provider layer: Terraform in `shared/` creates the current Hetzner VPS, firewall, SSH key, and deploy user.
+- VPS runtime layer: `scripts/deploy-shared-caddy.sh` installs/refreshes Docker and the shared Caddy reverse proxy.
+- App deployment layer: each app exposes `scripts/deploy-vps.sh`; deployment docs and automation use the generic script names.
+- Optional DNS layer: `scripts/update-gandi-dns.sh` updates Gandi LiveDNS `A` records when explicitly requested.
 
 ## Prerequisites
 
-- `terraform`, `bw`, and `jq` installed locally.
+- `terraform`, `bw`, `jq`, and `curl` installed locally.
 - Hetzner token available in Bitwarden item `hetzner-hcloud-token`, field `token`.
-- DNS access for your domain.
-- SSH key available at path used in `terraform.tfvars`.
+- Gandi PAT available either as `GANDI_PAT` or in Bitwarden item `gandi-pat` for DNS updates.
+- SSH key available at the path used in `terraform.tfvars`.
 
 ## 1) Configure Terraform Variables
 
@@ -30,11 +32,11 @@ Set at minimum in `terraform.tfvars`:
 - `ssh_public_key_path`
 - `admin_ipv4_cidrs` / `admin_ipv6_cidrs`
 - `family_domain` (example: `family.bghimire.com`)
-- `fitness_domain` (example: `fit.bghimire.com`)
+- `fitness_domain` (example: `fitness.bghimire.com`)
 - `badge_creator_domain` (example: `badges.bghimire.com`)
 - `acme_email`
 
-## 2) Recreate or Apply Infrastructure
+## 2) Apply Hetzner Infrastructure
 
 From `hetzner_tf` root:
 
@@ -46,7 +48,7 @@ cd /Users/biswash/Documents/repos/hetzner_tf
 ./scripts/tf-hcloud.sh output
 ```
 
-If you want a clean rebuild:
+If you intentionally want a clean rebuild:
 
 ```bash
 ./scripts/tf-hcloud.sh destroy -auto-approve
@@ -56,67 +58,68 @@ If you want a clean rebuild:
 
 ## 3) Configure DNS
 
-Point both subdomains to the same Terraform output server IP:
+Point each app subdomain to the Terraform `server_ipv4` output:
 - `family.bghimire.com` -> `<server_ipv4>`
-- `fit.bghimire.com` -> `<server_ipv4>`
+- `fitness.bghimire.com` -> `<server_ipv4>`
 - `badges.bghimire.com` -> `<server_ipv4>`
 
-## 4) Deploy Family Hub
+Manual Gandi update:
 
-From `hetzner_tf` root:
+```bash
+./scripts/update-gandi-dns.sh family.bghimire.com <server-ip>
+```
+
+Deploy commands can also update the selected app record with `--update-dns`.
+
+## 4) Deploy Apps
+
+Recommended Terraform-output flow:
 
 ```bash
 cd /Users/biswash/Documents/repos/hetzner_tf
+./scripts/deploy-vps-prod-from-tf.sh family_hub main
+./scripts/deploy-vps-prod-from-tf.sh fitness main
+./scripts/deploy-vps-prod-from-tf.sh badge_creator main
+```
+
+With Gandi DNS update:
+
+```bash
+./scripts/deploy-vps-prod-from-tf.sh --update-dns family_hub main
+```
+
+Manual VPS flow:
+
+```bash
+FAMILY_DOMAIN=family.bghimire.com \
+FITNESS_DOMAIN=fitness.bghimire.com \
+BADGE_CREATOR_DOMAIN=badges.bghimire.com \
+ACME_EMAIL=ghi.biswash@gmail.com \
+./scripts/deploy-vps-prod.sh family_hub deploy <server-ip> https://github.com/biswashghi/family_hub.git main
+```
+
+Legacy Hetzner command names still work:
+
+```bash
 ./scripts/deploy-hetzner-prod-from-tf.sh \
   /Users/biswash/Documents/repos/family_hub \
-  <deploy-user> <server-ip> <family-repo-url> main
+  deploy <server-ip> https://github.com/biswashghi/family_hub.git main
 ```
 
-Family Hub creates its first household sign-in from `/login` after deployment. No app username or password is required during deploy.
-
-If needed, return to the Family Hub README for app-specific details:
-- [Family Hub README](https://github.com/biswashghi/family_hub/blob/main/README.md)
-
-## 5) Deploy Fitness
-
-From `hetzner_tf` root:
-
-```bash
-cd /Users/biswash/Documents/repos/hetzner_tf
-./scripts/deploy-hetzner-prod-from-tf.sh \
-  /Users/biswash/Documents/repos/fitness \
-  <deploy-user> <server-ip> <fitness-repo-url> main
-```
-
-If needed, return to the Fitness README for app-specific details:
-- [Fitness README](https://github.com/biswashghi/fitness/blob/main/README.md)
-
-## 6) Deploy Badge Creator
-
-From `hetzner_tf` root:
-
-```bash
-cd /Users/biswash/Documents/repos/hetzner_tf
-./scripts/deploy-hetzner-prod-from-tf.sh \
-  /Users/biswash/Documents/repos/badge_creator \
-  <deploy-user> <server-ip> <badge-creator-repo-url> main
-```
-
-If needed, return to the Badge Creator README for app-specific details:
-- [Badge Creator README](https://github.com/biswashghi/badge_creator/blob/main/README.md)
-
-## 7) Verify
+## 5) Verify
 
 ```bash
 curl -I https://family.bghimire.com
 curl -f https://family.bghimire.com/api/health
-curl -I https://fit.bghimire.com
-curl -f https://fit.bghimire.com/api/health
+curl -I https://fitness.bghimire.com
+curl -f https://fitness.bghimire.com/api/health
 curl -I https://badges.bghimire.com
 ```
 
 ## Scripts
 
-- Terraform wrapper: [/Users/biswash/Documents/repos/hetzner_tf/scripts/tf-hcloud.sh](/Users/biswash/Documents/repos/hetzner_tf/scripts/tf-hcloud.sh)
-- Shared deploy wrapper: [/Users/biswash/Documents/repos/hetzner_tf/scripts/deploy-hetzner-prod-from-tf.sh](/Users/biswash/Documents/repos/hetzner_tf/scripts/deploy-hetzner-prod-from-tf.sh)
+- Hetzner Terraform wrapper: [/Users/biswash/Documents/repos/hetzner_tf/scripts/tf-hcloud.sh](/Users/biswash/Documents/repos/hetzner_tf/scripts/tf-hcloud.sh)
+- Generic Terraform-output deploy: [/Users/biswash/Documents/repos/hetzner_tf/scripts/deploy-vps-prod-from-tf.sh](/Users/biswash/Documents/repos/hetzner_tf/scripts/deploy-vps-prod-from-tf.sh)
+- Generic manual VPS deploy: [/Users/biswash/Documents/repos/hetzner_tf/scripts/deploy-vps-prod.sh](/Users/biswash/Documents/repos/hetzner_tf/scripts/deploy-vps-prod.sh)
 - Shared Caddy deploy: [/Users/biswash/Documents/repos/hetzner_tf/scripts/deploy-shared-caddy.sh](/Users/biswash/Documents/repos/hetzner_tf/scripts/deploy-shared-caddy.sh)
+- Gandi DNS update: [/Users/biswash/Documents/repos/hetzner_tf/scripts/update-gandi-dns.sh](/Users/biswash/Documents/repos/hetzner_tf/scripts/update-gandi-dns.sh)

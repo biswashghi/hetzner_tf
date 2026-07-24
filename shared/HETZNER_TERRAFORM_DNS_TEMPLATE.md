@@ -29,7 +29,7 @@ For this app, deployment is split into layers:
 - Server pull/build/up workflow
 - References:
   - [scripts/tf-hcloud.sh](../scripts/tf-hcloud.sh)
-  - [fitness/scripts/deploy-hetzner.sh](../../fitness/scripts/deploy-hetzner.sh)
+  - [fitness/scripts/deploy-vps.sh](../../fitness/scripts/deploy-vps.sh)
   - [scripts/deploy-hetzner-prod-from-tf.sh](../scripts/deploy-hetzner-prod-from-tf.sh)
 
 ## 2) What Terraform Manages
@@ -161,7 +161,7 @@ When reusing for another app, update these areas:
 5. Deploy script assumptions
 - Current scripts assume repo pull to `/opt/fitness-tracker` and compose deploy.
 - Update as needed in:
-  - [fitness/scripts/deploy-hetzner.sh](../../fitness/scripts/deploy-hetzner.sh)
+  - [fitness/scripts/deploy-vps.sh](../../fitness/scripts/deploy-vps.sh)
 
 ## 8) Operational Best Practices (Template Defaults)
 
