@@ -9,6 +9,7 @@ Examples:
   $0 family_hub main
   $0 fitness https://github.com/biswashghi/fitness.git main
   $0 --update-dns badge_creator main
+  $0 --update-dns paisa main
 USAGE
 }
 
@@ -96,23 +97,39 @@ DEPLOY_USER="$(tf_output_required deploy_user)" || exit 1
 FAMILY_DOMAIN="$(tf_output_required family_domain)" || exit 1
 FITNESS_DOMAIN="$(tf_output_required fitness_domain)" || exit 1
 BADGE_CREATOR_DOMAIN="$(tf_output_required badge_creator_domain)" || exit 1
+PAISA_WEB_DOMAIN="$(tf_output_required paisa_web_domain)" || exit 1
+PAISA_API_DOMAIN="$(tf_output_required paisa_api_domain)" || exit 1
+NOVEL_API_DOMAIN="$(tf_output_required novel_api_domain)" || exit 1
+NOVEL_AUTH_DOMAIN="$(tf_output_required novel_auth_domain)" || exit 1
 ACME_EMAIL="$(tf_output_required acme_email)" || exit 1
 
 validate_ipv4 server_ipv4 "$SERVER_IP"
 validate_dns_name family_domain "$FAMILY_DOMAIN"
 validate_dns_name fitness_domain "$FITNESS_DOMAIN"
 validate_dns_name badge_creator_domain "$BADGE_CREATOR_DOMAIN"
+validate_dns_name paisa_web_domain "$PAISA_WEB_DOMAIN"
+validate_dns_name paisa_api_domain "$PAISA_API_DOMAIN"
+validate_dns_name novel_api_domain "$NOVEL_API_DOMAIN"
+validate_dns_name novel_auth_domain "$NOVEL_AUTH_DOMAIN"
 
 if [[ "$UPDATE_DNS" == "1" ]]; then
   FAMILY_DOMAIN="$FAMILY_DOMAIN" \
   FITNESS_DOMAIN="$FITNESS_DOMAIN" \
   BADGE_CREATOR_DOMAIN="$BADGE_CREATOR_DOMAIN" \
+  PAISA_WEB_DOMAIN="$PAISA_WEB_DOMAIN" \
+  PAISA_API_DOMAIN="$PAISA_API_DOMAIN" \
+  NOVEL_API_DOMAIN="$NOVEL_API_DOMAIN" \
+  NOVEL_AUTH_DOMAIN="$NOVEL_AUTH_DOMAIN" \
   ACME_EMAIL="$ACME_EMAIL" \
     "${SCRIPT_DIR}/deploy-vps-prod.sh" --update-dns "$APP" "$DEPLOY_USER" "$SERVER_IP" "$REPO_URL" "$BRANCH"
 else
   FAMILY_DOMAIN="$FAMILY_DOMAIN" \
   FITNESS_DOMAIN="$FITNESS_DOMAIN" \
   BADGE_CREATOR_DOMAIN="$BADGE_CREATOR_DOMAIN" \
+  PAISA_WEB_DOMAIN="$PAISA_WEB_DOMAIN" \
+  PAISA_API_DOMAIN="$PAISA_API_DOMAIN" \
+  NOVEL_API_DOMAIN="$NOVEL_API_DOMAIN" \
+  NOVEL_AUTH_DOMAIN="$NOVEL_AUTH_DOMAIN" \
   ACME_EMAIL="$ACME_EMAIL" \
     "${SCRIPT_DIR}/deploy-vps-prod.sh" "$APP" "$DEPLOY_USER" "$SERVER_IP" "$REPO_URL" "$BRANCH"
 fi

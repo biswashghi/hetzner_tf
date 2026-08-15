@@ -89,6 +89,30 @@ variable "badge_creator_domain" {
   default     = "example.com"
 }
 
+variable "paisa_web_domain" {
+  description = "Public domain for the Paisa web console (e.g. paisa.example.com)"
+  type        = string
+  default     = "example.com"
+}
+
+variable "paisa_api_domain" {
+  description = "Public domain for the Paisa API (e.g. api.paisa.example.com)"
+  type        = string
+  default     = "example.com"
+}
+
+variable "novel_api_domain" {
+  description = "Public API domain for Novel Tracker (e.g. api.novel.example.com)"
+  type        = string
+  default     = "example.com"
+}
+
+variable "novel_auth_domain" {
+  description = "Public Keycloak domain for Novel Tracker (e.g. auth.novel.example.com)"
+  type        = string
+  default     = "example.com"
+}
+
 variable "acme_email" {
   description = "Email used for ACME/Let's Encrypt registration"
   type        = string

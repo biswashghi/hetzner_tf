@@ -26,6 +26,14 @@ output "badge_creator_domain" {
   value = var.badge_creator_domain
 }
 
+output "paisa_web_domain" {
+  value = var.paisa_web_domain
+}
+
+output "paisa_api_domain" {
+  value = var.paisa_api_domain
+}
+
 output "family_url" {
   value = "https://${var.family_domain}"
 }
@@ -36,6 +44,30 @@ output "fitness_url" {
 
 output "badge_creator_url" {
   value = "https://${var.badge_creator_domain}"
+}
+
+output "paisa_web_url" {
+  value = "https://${var.paisa_web_domain}"
+}
+
+output "paisa_api_url" {
+  value = "https://${var.paisa_api_domain}"
+}
+
+output "novel_api_domain" {
+  value = var.novel_api_domain
+}
+
+output "novel_auth_domain" {
+  value = var.novel_auth_domain
+}
+
+output "novel_api_url" {
+  value = "https://${var.novel_api_domain}"
+}
+
+output "novel_auth_url" {
+  value = "https://${var.novel_auth_domain}"
 }
 
 output "acme_email" {

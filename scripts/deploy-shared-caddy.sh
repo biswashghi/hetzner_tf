@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -lt 6 ]]; then
-  echo "Usage: $0 <deploy-user> <server-ip> <family-domain> <fitness-domain> <badge-creator-domain> <acme-email> [family-port] [fitness-port] [badge-creator-port]"
+if [[ $# -lt 10 ]]; then
+  echo "Usage: $0 <deploy-user> <server-ip> <family-domain> <fitness-domain> <badge-creator-domain> <paisa-web-domain> <paisa-api-domain> <novel-api-domain> <novel-auth-domain> <acme-email> [family-port] [fitness-port] [badge-creator-port] [paisa-web-port] [paisa-api-port] [novel-api-port] [novel-auth-port]"
   exit 1
 fi
 
@@ -11,10 +11,18 @@ SERVER_IP="$2"
 FAMILY_DOMAIN="$3"
 FITNESS_DOMAIN="$4"
 BADGE_CREATOR_DOMAIN="$5"
-ACME_EMAIL="$6"
-FAMILY_PORT="${7:-8787}"
-FITNESS_PORT="${8:-8788}"
-BADGE_CREATOR_PORT="${9:-8789}"
+PAISA_WEB_DOMAIN="$6"
+PAISA_API_DOMAIN="$7"
+NOVEL_API_DOMAIN="$8"
+NOVEL_AUTH_DOMAIN="$9"
+ACME_EMAIL="$10"
+FAMILY_PORT="${11:-8787}"
+FITNESS_PORT="${12:-8788}"
+BADGE_CREATOR_PORT="${13:-8789}"
+PAISA_WEB_PORT="${14:-8790}"
+PAISA_API_PORT="${15:-8791}"
+NOVEL_API_PORT="${16:-8792}"
+NOVEL_AUTH_PORT="${17:-8793}"
 
 ssh "${DEPLOY_USER}@${SERVER_IP}" <<EOF
 set -euo pipefail
@@ -50,6 +58,26 @@ ${FITNESS_DOMAIN} {
 ${BADGE_CREATOR_DOMAIN} {
   encode zstd gzip
   reverse_proxy 127.0.0.1:${BADGE_CREATOR_PORT}
+}
+
+${PAISA_WEB_DOMAIN} {
+  encode zstd gzip
+  reverse_proxy 127.0.0.1:${PAISA_WEB_PORT}
+}
+
+${PAISA_API_DOMAIN} {
+  encode zstd gzip
+  reverse_proxy 127.0.0.1:${PAISA_API_PORT}
+}
+
+${NOVEL_API_DOMAIN} {
+  encode zstd gzip
+  reverse_proxy 127.0.0.1:${NOVEL_API_PORT}
+}
+
+${NOVEL_AUTH_DOMAIN} {
+  encode zstd gzip
+  reverse_proxy 127.0.0.1:${NOVEL_AUTH_PORT}
 }
 CADDYFILE
 
