@@ -15,7 +15,7 @@ PAISA_WEB_DOMAIN="$6"
 PAISA_API_DOMAIN="$7"
 NOVEL_API_DOMAIN="$8"
 NOVEL_AUTH_DOMAIN="$9"
-ACME_EMAIL="$10"
+ACME_EMAIL="${10}"
 FAMILY_PORT="${11:-8787}"
 FITNESS_PORT="${12:-8788}"
 BADGE_CREATOR_PORT="${13:-8789}"
@@ -44,42 +44,70 @@ sudo tee /opt/shared-caddy/Caddyfile >/dev/null <<CADDYFILE
 {
   email ${ACME_EMAIL}
 }
+CADDYFILE
 
+if [[ -n "${FAMILY_DOMAIN}" ]]; then
+sudo tee -a /opt/shared-caddy/Caddyfile >/dev/null <<CADDYFILE
 ${FAMILY_DOMAIN} {
   encode zstd gzip
   reverse_proxy 127.0.0.1:${FAMILY_PORT}
 }
+CADDYFILE
+fi
 
+if [[ -n "${FITNESS_DOMAIN}" ]]; then
+sudo tee -a /opt/shared-caddy/Caddyfile >/dev/null <<CADDYFILE
 ${FITNESS_DOMAIN} {
   encode zstd gzip
   reverse_proxy 127.0.0.1:${FITNESS_PORT}
 }
+CADDYFILE
+fi
 
+if [[ -n "${BADGE_CREATOR_DOMAIN}" ]]; then
+sudo tee -a /opt/shared-caddy/Caddyfile >/dev/null <<CADDYFILE
 ${BADGE_CREATOR_DOMAIN} {
   encode zstd gzip
   reverse_proxy 127.0.0.1:${BADGE_CREATOR_PORT}
 }
+CADDYFILE
+fi
 
+if [[ -n "${PAISA_WEB_DOMAIN}" ]]; then
+sudo tee -a /opt/shared-caddy/Caddyfile >/dev/null <<CADDYFILE
 ${PAISA_WEB_DOMAIN} {
   encode zstd gzip
   reverse_proxy 127.0.0.1:${PAISA_WEB_PORT}
 }
+CADDYFILE
+fi
 
+if [[ -n "${PAISA_API_DOMAIN}" ]]; then
+sudo tee -a /opt/shared-caddy/Caddyfile >/dev/null <<CADDYFILE
 ${PAISA_API_DOMAIN} {
   encode zstd gzip
   reverse_proxy 127.0.0.1:${PAISA_API_PORT}
 }
+CADDYFILE
+fi
 
+if [[ -n "${NOVEL_API_DOMAIN}" ]]; then
+sudo tee -a /opt/shared-caddy/Caddyfile >/dev/null <<CADDYFILE
 ${NOVEL_API_DOMAIN} {
   encode zstd gzip
   reverse_proxy 127.0.0.1:${NOVEL_API_PORT}
 }
+CADDYFILE
+fi
 
+if [[ -n "${NOVEL_AUTH_DOMAIN}" ]]; then
+sudo tee -a /opt/shared-caddy/Caddyfile >/dev/null <<CADDYFILE
 ${NOVEL_AUTH_DOMAIN} {
   encode zstd gzip
   reverse_proxy 127.0.0.1:${NOVEL_AUTH_PORT}
 }
 CADDYFILE
+fi
 
 sudo tee /opt/shared-caddy/docker-compose.yml >/dev/null <<'COMPOSEFILE'
 services:
