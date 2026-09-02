@@ -35,6 +35,13 @@ resource "hcloud_firewall" "web" {
     port       = "443"
     source_ips = ["0.0.0.0/0", "::/0"]
   }
+
+  rule {
+    direction  = "in"
+    protocol   = "udp"
+    port       = "443"
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
 }
 
 resource "hcloud_server" "app" {

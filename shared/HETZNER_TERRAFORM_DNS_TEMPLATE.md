@@ -8,6 +8,11 @@ This document is a reusable template for deploying apps to a Hetzner Cloud serve
 
 Use this writeup as a blueprint for other apps.
 
+> The runtime follows the shared-host model in
+> [`../SHARED_HOST_DEPLOYMENT.md`](../SHARED_HOST_DEPLOYMENT.md): bootstrap Caddy
+> and `vps-edge` once, then let each app own one Compose project and route file.
+> Application releases must not invoke the platform bootstrap.
+
 ## 1) Deployment Architecture
 
 For this app, deployment is split into layers:
@@ -17,12 +22,12 @@ For this app, deployment is split into layers:
 - Reference: [main.tf](./main.tf)
 
 2. Runtime layer (Docker Compose)
-- Runs app container and Caddy reverse proxy container.
+- The platform runs Caddy; each app runs in a separate named Compose project.
 - Reference: [fitness/docker-compose.prod.yml](../../fitness/docker-compose.prod.yml)
 
 3. HTTPS + routing (Caddy)
-- Terminates TLS on 443 and reverse proxies to app internal port.
-- Reference: [scripts/deploy-shared-caddy.sh](../scripts/deploy-shared-caddy.sh)
+- Terminates TLS on 443 and reaches public services over `vps-edge`.
+- Reference: [scripts/deploy-vps-platform.sh](../scripts/deploy-vps-platform.sh)
 
 4. Deployment automation (scripts)
 - Terraform token orchestration via Bitwarden
@@ -30,6 +35,7 @@ For this app, deployment is split into layers:
 - References:
   - [scripts/tf-hcloud.sh](../scripts/tf-hcloud.sh)
   - [fitness/scripts/deploy-vps.sh](../../fitness/scripts/deploy-vps.sh)
+  - [paisa/scripts/deploy-vps.sh](../../paisa/scripts/deploy-vps.sh)
   - [scripts/deploy-hetzner-prod-from-tf.sh](../scripts/deploy-hetzner-prod-from-tf.sh)
 
 ## 2) What Terraform Manages
@@ -80,6 +86,8 @@ For a subdomain like `fit.bghimire.com`:
 3. Set Terraform vars:
 - `fitness_domain = "fit.bghimire.com"`
 - `badge_creator_domain = "badges.bghimire.com"` (if deploying the static badge site too)
+- `paisa_web_domain = "paisa.bghimire.com"`
+- `paisa_api_domain = "api.paisa.bghimire.com"`
 - `acme_email = "you@bghimire.com"`
 4. Deploy compose stack with Caddy.
 5. Caddy obtains certificate and serves app at `https://fit.bghimire.com`.
@@ -119,12 +127,16 @@ cd /path/to/hetzner_tf
 
 3. Configure DNS (`A` record to `server_ipv4`).
 
-4. Deploy app + Caddy using Terraform outputs:
+4. Bootstrap the platform once, then deploy apps independently:
 
 ```bash
 cd /path/to/hetzner_tf
-./scripts/deploy-hetzner-prod-from-tf.sh /path/to/fitness deploy <SERVER_IPV4> <REPO_URL> main
+./scripts/deploy-vps-platform-from-tf.sh
+./scripts/deploy-vps-prod-from-tf.sh paisa main
 ```
+
+The generic wrapper intentionally rejects `fitness` and `badge_creator` until
+their Compose stacks have been migrated away from host ports.
 
 5. Verify:
 
@@ -132,6 +144,8 @@ cd /path/to/hetzner_tf
 curl -I https://<fitness_domain>
 curl -f https://<fitness_domain>/api/health
 curl -I https://<badge_creator_domain>
+curl -I https://<paisa_web_domain>
+curl -f https://<paisa_api_domain>/health
 ```
 
 ## 7) Adapting This Template for Another App
@@ -144,14 +158,15 @@ When reusing for another app, update these areas:
   - [fitness/Dockerfile](../../fitness/Dockerfile)
 
 2. Reverse proxy target
-- Update upstream host:port in:
-  - [scripts/deploy-shared-caddy.sh](../scripts/deploy-shared-caddy.sh)
+- Give the public service a unique alias on `vps-edge` and have the app's deploy
+  script submit only its route through `/usr/local/bin/vps-route`.
 
 3. Health endpoint
 - Ensure `/api/health` exists, or change verification/deploy checks.
 - Current backend ref:
   - [fitness/server/index.js](../../fitness/server/index.js)
-  - Static sites like `badge_creator` can skip the health endpoint and use a simple `curl -I` check instead.
+  - Static sites like `badge_creator` and the Paisa web frontend can use a simple `curl -I` check instead.
+  - Paisa verifies both the API health endpoint and the frontend root.
 
 4. Terraform naming and defaults
 - Update names/tags/defaults in:
@@ -183,8 +198,9 @@ When reusing for another app, update these areas:
 - Ensure Git host key is in remote `known_hosts`
 - Use HTTPS repo URL if easier
 
-3. App healthy on localhost, not externally
-- Usually firewall mismatch (Hetzner vs UFW)
+3. App healthy internally, not externally
+- Check that the service and `shared-caddy` both join `vps-edge`, then inspect the
+  app's file under `/opt/shared-caddy/apps`.
 
 4. Terraform token errors
 - Validate `HCLOUD_TOKEN` is present and valid at runtime

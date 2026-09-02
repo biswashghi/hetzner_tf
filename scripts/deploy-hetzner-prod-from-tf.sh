@@ -50,21 +50,19 @@ tf_output_required() {
   printf '%s\n' "$value"
 }
 
-FAMILY_DOMAIN="$(tf_output_required family_domain)" || exit 1
-FITNESS_DOMAIN="$(tf_output_required fitness_domain)" || exit 1
-BADGE_CREATOR_DOMAIN="$(tf_output_required badge_creator_domain)" || exit 1
-PAISA_WEB_DOMAIN="$(tf_output_required paisa_web_domain)" || exit 1
-PAISA_API_DOMAIN="$(tf_output_required paisa_api_domain)" || exit 1
-NOVEL_API_DOMAIN="$(tf_output_required novel_api_domain)" || exit 1
-NOVEL_AUTH_DOMAIN="$(tf_output_required novel_auth_domain)" || exit 1
-ACME_EMAIL="$(tf_output_required acme_email)" || exit 1
+case "$APP" in
+  family_hub) FAMILY_DOMAIN="$(tf_output_required family_domain)"; export FAMILY_DOMAIN ;;
+  fitness) FITNESS_DOMAIN="$(tf_output_required fitness_domain)"; export FITNESS_DOMAIN ;;
+  badge_creator) BADGE_CREATOR_DOMAIN="$(tf_output_required badge_creator_domain)"; export BADGE_CREATOR_DOMAIN ;;
+  paisa)
+    PAISA_WEB_DOMAIN="$(tf_output_required paisa_web_domain)"; export PAISA_WEB_DOMAIN
+    PAISA_API_DOMAIN="$(tf_output_required paisa_api_domain)"; export PAISA_API_DOMAIN
+    ;;
+  novel_tracker)
+    NOVEL_API_DOMAIN="$(tf_output_required novel_api_domain)"; export NOVEL_API_DOMAIN
+    NOVEL_AUTH_DOMAIN="$(tf_output_required novel_auth_domain)"; export NOVEL_AUTH_DOMAIN
+    ;;
+  drift) DRIFT_API_DOMAIN="$(tf_output_required drift_api_domain)"; export DRIFT_API_DOMAIN ;;
+esac
 
-FAMILY_DOMAIN="$FAMILY_DOMAIN" \
-FITNESS_DOMAIN="$FITNESS_DOMAIN" \
-BADGE_CREATOR_DOMAIN="$BADGE_CREATOR_DOMAIN" \
-PAISA_WEB_DOMAIN="$PAISA_WEB_DOMAIN" \
-PAISA_API_DOMAIN="$PAISA_API_DOMAIN" \
-NOVEL_API_DOMAIN="$NOVEL_API_DOMAIN" \
-NOVEL_AUTH_DOMAIN="$NOVEL_AUTH_DOMAIN" \
-ACME_EMAIL="$ACME_EMAIL" \
-  "${SCRIPT_DIR}/deploy-vps-prod.sh" "$APP" "$DEPLOY_USER" "$SERVER_IP" "$REPO_URL" "$BRANCH"
+"${SCRIPT_DIR}/deploy-vps-prod.sh" "$APP" "$DEPLOY_USER" "$SERVER_IP" "$REPO_URL" "$BRANCH"

@@ -107,6 +107,12 @@ variable "novel_api_domain" {
   default     = "example.com"
 }
 
+variable "drift_api_domain" {
+  description = "DNS name for the Drift API"
+  type        = string
+  default     = "example.com"
+}
+
 variable "novel_auth_domain" {
   description = "Public Keycloak domain for Novel Tracker (e.g. auth.novel.example.com)"
   type        = string

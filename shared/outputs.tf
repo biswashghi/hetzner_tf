@@ -73,3 +73,13 @@ output "novel_auth_url" {
 output "acme_email" {
   value = var.acme_email
 }
+
+output "drift_api_domain" {
+  description = "DNS name for the Drift API"
+  value       = var.drift_api_domain
+}
+
+output "drift_api_url" {
+  description = "Base URL for the Drift API"
+  value       = "https://${var.drift_api_domain}"
+}

@@ -4,7 +4,7 @@ APP_REGISTRY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOS_ROOT="${REPOS_ROOT:-$(cd "${APP_REGISTRY_DIR}/../../.." && pwd)}"
 
 supported_apps() {
-  printf '%s\n' "family_hub fitness badge_creator paisa novel_tracker"
+  printf '%s\n' "family_hub fitness badge_creator paisa novel_tracker drift"
 }
 
 is_repo_url() {
@@ -30,8 +30,11 @@ app_key_from_repo_dir() {
     novel_extension)
       printf '%s\n' "novel_tracker"
       ;;
+    ios_app|drift)
+      printf '%s\n' "drift"
+      ;;
     *)
-      echo "Unsupported repo dir: $repo_name (expected family_hub, fitness, badge_creator, paisa, or novel_extension)" >&2
+      echo "Unsupported repo dir: $repo_name (expected family_hub, fitness, badge_creator, paisa, novel_extension, or ios_app)" >&2
       return 1
       ;;
   esac
@@ -39,62 +42,41 @@ app_key_from_repo_dir() {
 
 resolve_app() {
   local app_key="$1"
-
-  APP_KEY="$app_key"
   case "$app_key" in
     family_hub)
       APP_LABEL="Family Hub"
       APP_REPO_DIR="${REPOS_ROOT}/family_hub"
       APP_DEFAULT_REPO_URL="https://github.com/biswashghi/family_hub.git"
       APP_DOMAIN_ENV="FAMILY_DOMAIN"
-      APP_DOMAIN_OUTPUT="family_domain"
-      APP_HOST_PORT="8787"
-      APP_HEALTH_PATH="/api/health"
       ;;
     fitness)
       APP_LABEL="Fitness"
       APP_REPO_DIR="${REPOS_ROOT}/fitness"
       APP_DEFAULT_REPO_URL="https://github.com/biswashghi/fitness.git"
       APP_DOMAIN_ENV="FITNESS_DOMAIN"
-      APP_DOMAIN_OUTPUT="fitness_domain"
-      APP_HOST_PORT="8788"
-      APP_HEALTH_PATH="/api/health"
       ;;
     badge_creator)
       APP_LABEL="Badge Creator"
       APP_REPO_DIR="${REPOS_ROOT}/badge_creator"
       APP_DEFAULT_REPO_URL="https://github.com/biswashghi/badge_creator.git"
       APP_DOMAIN_ENV="BADGE_CREATOR_DOMAIN"
-      APP_DOMAIN_OUTPUT="badge_creator_domain"
-      APP_HOST_PORT="8789"
-      APP_HEALTH_PATH="/"
       ;;
     paisa)
       APP_LABEL="Paisa"
       APP_REPO_DIR="${REPOS_ROOT}/paisa"
       APP_DEFAULT_REPO_URL="https://github.com/biswashghi/paisa.git"
       APP_DOMAIN_ENV="PAISA_WEB_DOMAIN"
-      APP_DOMAIN_OUTPUT="paisa_web_domain"
-      APP_WEB_DOMAIN_ENV="PAISA_WEB_DOMAIN"
-      APP_API_DOMAIN_ENV="PAISA_API_DOMAIN"
-      APP_WEB_DOMAIN_OUTPUT="paisa_web_domain"
-      APP_API_DOMAIN_OUTPUT="paisa_api_domain"
-      APP_WEB_HOST_PORT="8790"
-      APP_API_HOST_PORT="8791"
-      APP_HOST_PORT="8790"
-      APP_HEALTH_PATH="/"
       ;;
     novel_tracker)
       APP_LABEL="Novel Tracker"
       APP_REPO_DIR="${REPOS_ROOT}/novel_extension"
-      APP_DEFAULT_REPO_URL="https://github.com/biswashghi/novel_extension.git"
-      APP_API_DOMAIN_ENV="NOVEL_API_DOMAIN"
-      APP_AUTH_DOMAIN_ENV="NOVEL_AUTH_DOMAIN"
-      APP_API_DOMAIN_OUTPUT="novel_api_domain"
-      APP_AUTH_DOMAIN_OUTPUT="novel_auth_domain"
-      APP_API_HOST_PORT="8792"
-      APP_AUTH_HOST_PORT="8793"
-      APP_HEALTH_PATH="/health"
+      APP_DEFAULT_REPO_URL="https://github.com/biswashghi/novel_tracker.git"
+      ;;
+    drift)
+      APP_LABEL="Drift"
+      APP_REPO_DIR="${REPOS_ROOT}/ios_app"
+      APP_DEFAULT_REPO_URL="https://github.com/biswashghi/drift.git"
+      APP_DOMAIN_ENV="DRIFT_API_DOMAIN"
       ;;
     *)
       echo "Unsupported app: $app_key" >&2
@@ -104,56 +86,4 @@ resolve_app() {
   esac
 
   APP_DEPLOY_SCRIPT="${APP_REPO_DIR}/scripts/deploy-vps.sh"
-}
-
-app_port() {
-  local app_key="$1"
-  case "$app_key" in
-    family_hub)
-      printf '%s\n' "8787"
-      ;;
-    fitness)
-      printf '%s\n' "8788"
-      ;;
-    badge_creator)
-      printf '%s\n' "8789"
-      ;;
-    paisa)
-      printf '%s\n' "8790"
-      ;;
-    novel_tracker)
-      printf '%s\n' "8792"
-      ;;
-    *)
-      echo "Unsupported app: $app_key" >&2
-      return 1
-      ;;
-  esac
-}
-
-app_web_port() {
-  local app_key="$1"
-  case "$app_key" in
-    paisa)
-      printf '%s\n' "8790"
-      ;;
-    *)
-      app_port "$app_key"
-      ;;
-  esac
-}
-
-app_api_port() {
-  local app_key="$1"
-  case "$app_key" in
-    paisa)
-      printf '%s\n' "8791"
-      ;;
-    novel_tracker)
-      printf '%s\n' "8792"
-      ;;
-    *)
-      app_port "$app_key"
-      ;;
-  esac
 }
